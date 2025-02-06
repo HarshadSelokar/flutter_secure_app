@@ -1,20 +1,24 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'dashboard_page.dart';
+import 'welcome_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final storage = FlutterSecureStorage();
 
-  // Read theme preference
+  // Check if the user has completed the initial setup
+  String? isRegistered = await storage.read(key: 'is_registered');
   String? isDarkMode = await storage.read(key: 'is_dark_mode');
-  runApp(MyApp(isDarkMode: isDarkMode == 'true'));
+
+  runApp(MyApp(isDarkMode: isDarkMode == 'true', isRegistered: isRegistered == 'true'));
 }
 
 class MyApp extends StatefulWidget {
   final bool isDarkMode;
+  final bool isRegistered;
 
-  const MyApp({super.key, required this.isDarkMode});
+  const MyApp({super.key, required this.isDarkMode, required this.isRegistered});
 
   @override
   State<MyApp> createState() => _MyAppState();
@@ -43,7 +47,9 @@ class _MyAppState extends State<MyApp> {
       debugShowCheckedModeBanner: false,
       title: 'Secure Data App',
       theme: _isDarkMode ? ThemeData.dark() : ThemeData.light(),
-      home: DashboardPage(toggleTheme: toggleTheme), // ✅ FIXED
+      home: widget.isRegistered
+          ? DashboardPage(toggleTheme: toggleTheme)
+          : WelcomePage(), // Redirect to Welcome Page for first-time users
     );
   }
 }
