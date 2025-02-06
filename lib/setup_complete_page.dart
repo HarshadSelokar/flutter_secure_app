@@ -28,7 +28,7 @@ class SetupCompletePage extends StatelessWidget {
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const DashboardPage(),
+                    builder: (context) => DashboardPage(toggleTheme: () {  },),
                   ),
                 );
               },
