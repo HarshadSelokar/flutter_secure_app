@@ -1,0 +1,26 @@
+name: secure_data_app
+description: A secure data app with user authentication and secure storage.
+
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=2.19.0 <3.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_secure_storage: ^9.2.2
+  file_picker: ^8.1.7
+  path_provider: ^2.1.5
+  encrypt: ^5.0.3 # For AES Encryption
+  local_auth: ^2.1.0
+  archive: ^3.3.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+flutter:
+  uses-material-design: true
