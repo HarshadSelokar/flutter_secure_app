@@ -1,10 +1,23 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        //noinspection AndroidGradlePluginVersion
+        classpath "com.android.tools.build:gradle:8.2.1"  // ✅ Correct Placement
+    }
+}
+
 allprojects {
     repositories {
         google()
         mavenCentral()
     }
 }
-
+// ✅ Keep these settings as they are.
 rootProject.buildDir = "../build"
 subprojects {
     project.buildDir = "${rootProject.buildDir}/${project.name}"
@@ -15,8 +28,4 @@ subprojects {
 
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
-}
-dependencies {
-    //noinspection AndroidGradlePluginVersion
-    classpath 'com.android.tools.build:gradle:8.2.1' // Make sure this version is correct
 }
