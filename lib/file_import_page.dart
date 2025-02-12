@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
-import 'utils/file_encryption_helper.dart';
 
 class FileImportPage extends StatefulWidget {
   const FileImportPage({super.key});
@@ -12,73 +11,55 @@ class FileImportPage extends StatefulWidget {
 }
 
 class _FileImportPageState extends State<FileImportPage> {
-  List<String> encryptedFiles = [];
+  List<String> files = [];
 
-  Future<void> pickAndEncryptFile() async {
+  Future<void> pickAndSaveFile() async {
     FilePickerResult? result = await FilePicker.platform.pickFiles();
-
     if (result != null) {
       File selectedFile = File(result.files.single.path!);
-      String encryptedPath = await FileEncryptionHelper.encryptFile(selectedFile);
+      Directory appDir = await getApplicationDocumentsDirectory();
+      String newPath = '${appDir.path}/${result.files.single.name}';
+      await selectedFile.copy(newPath);
 
       setState(() {
-        encryptedFiles.add(encryptedPath);
+        files.add(newPath);
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("File encrypted and stored: ${result.files.single.name}")),
+        SnackBar(content: Text("File saved to app storage: ${result.files.single.name}")),
       );
     }
   }
 
-  Future<void> decryptFile(String encryptedPath) async {
-    File decryptedFile = await FileEncryptionHelper.decryptFile(encryptedPath);
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text("File decrypted: ${decryptedFile.path}")),
-    );
-  }
-
-  Future<void> deleteFile(String encryptedPath) async {
-    await FileEncryptionHelper.deleteEncryptedFile(encryptedPath);
-    setState(() {
-      encryptedFiles.remove(encryptedPath);
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text("Encrypted file deleted successfully")),
-    );
+  Future<void> deleteFile(String filePath) async {
+    File file = File(filePath);
+    if (await file.exists()) {
+      await file.delete();
+      setState(() {
+        files.remove(filePath);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Manage Encrypted Files")),
+      appBar: AppBar(title: const Text("Manage Files")),
       body: Column(
         children: [
           ElevatedButton(
-            onPressed: pickAndEncryptFile,
-            child: const Text("Pick & Encrypt File"),
+            onPressed: pickAndSaveFile,
+            child: const Text("Import File"),
           ),
           Expanded(
             child: ListView.builder(
-              itemCount: encryptedFiles.length,
+              itemCount: files.length,
               itemBuilder: (context, index) {
-                String filePath = encryptedFiles[index];
                 return ListTile(
-                  title: Text(filePath.split('/').last),
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.visibility),
-                        onPressed: () => decryptFile(filePath),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.delete, color: Colors.red),
-                        onPressed: () => deleteFile(filePath),
-                      ),
-                    ],
+                  title: Text(files[index].split('/').last),
+                  trailing: IconButton(
+                    icon: const Icon(Icons.delete, color: Colors.red),
+                    onPressed: () => deleteFile(files[index]),
                   ),
                 );
               },

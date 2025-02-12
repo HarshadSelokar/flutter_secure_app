@@ -1,43 +1,32 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'setup_complete_page.dart'; // Import the setup complete page
+import 'setup_complete_page.dart';
 
-class FaceRecognitionSetupPage extends StatelessWidget {
+class FaceRecognitionSetupPage extends StatefulWidget {
   const FaceRecognitionSetupPage({super.key});
 
   @override
+  State<FaceRecognitionSetupPage> createState() => _FaceRecognitionSetupPageState();
+}
+
+class _FaceRecognitionSetupPageState extends State<FaceRecognitionSetupPage> {
+  Future<void> registerFace() async {
+    // TODO: Implement real face recognition using ML Kit or an alternative library
+    await Future.delayed(const Duration(seconds: 2)); // Simulating process
+
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const SetupCompletePage()),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final FlutterSecureStorage secureStorage = FlutterSecureStorage();
-
-    Future<void> completeSetup() async {
-      // Mark the user as registered in secure storage
-      await secureStorage.write(key: 'is_registered', value: 'true');
-
-      // Navigate to the Setup Complete page
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const SetupCompletePage(),
-        ),
-      );
-    }
-
     return Scaffold(
-      appBar: AppBar(title: const Text("Set Up Face Recognition")),
+      appBar: AppBar(title: const Text("Face Recognition Setup")),
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Position your face in the camera to register",
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: completeSetup,
-              child: const Text("Complete Setup"),
-            ),
-          ],
+        child: ElevatedButton(
+          onPressed: registerFace,
+          child: const Text("Register Face"),
         ),
       ),
     );

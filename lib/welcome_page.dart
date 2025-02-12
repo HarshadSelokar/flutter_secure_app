@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
-import 'set_name_page.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'authentication_page.dart';
 
 class WelcomePage extends StatelessWidget {
   const WelcomePage({super.key});
@@ -8,35 +8,53 @@ class WelcomePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Welcome")),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Text(
-              "Welcome to Secure Data App!",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 20),
-            const Text(
-              "Let's set up your security locks to protect your data.",
-              style: TextStyle(fontSize: 16),
-              textAlign: TextAlign.center,
-            ),
-            const SizedBox(height: 40),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (context) => const SetNamePage()),
-                );
-              },
-              child: const Text("Get Started"),
-            ),
-          ],
-        ),
+      body: Stack(
+        children: [
+          /// ✅ Background Image
+          Positioned.fill(
+            child: Image.asset("assets/images/welcome_bg.jpg", fit: BoxFit.cover),
+          ),
+
+          /// ✅ Welcome Content
+          Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Text(
+                "Secure Data App",
+                style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+              ).animate().fade(duration: 600.ms),
+
+              const SizedBox(height: 20),
+
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                child: const Text(
+                  "Your data, fully protected with the highest security standards.",
+                  style: TextStyle(fontSize: 16, color: Colors.white70),
+                  textAlign: TextAlign.center,
+                ).animate().fade(duration: 700.ms),
+              ),
+
+              const SizedBox(height: 40),
+
+              /// ✅ Animated Get Started Button
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AuthenticationPage()),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blueAccent,
+                  padding: const EdgeInsets.symmetric(horizontal: 40, vertical: 12),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                ),
+                child: const Text("Get Started", style: TextStyle(fontSize: 18)),
+              ).animate().scale(duration: 600.ms),
+            ],
+          ),
+        ],
       ),
     );
   }

@@ -1,82 +1,62 @@
 import 'dart:io';
-import 'package:archive/archive.dart';
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:path_provider/path_provider.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class BackupHelper {
-  static const FlutterSecureStorage secureStorage = FlutterSecureStorage();
-  static const String backupFileName = "secure_backup.zip";
+  static const _storage = FlutterSecureStorage();
+  static const String _backupFileName = "secure_backup.dat";
 
-  /// Create a backup ZIP file containing encrypted files & credentials
-  static Future<String> createBackup() async {
-    final directory = await getApplicationDocumentsDirectory();
-    final backupFilePath = '${directory.path}/$backupFileName';
+  /// ✅ Create a Backup of User Data
+  static Future<String?> createBackup(String data) async {
+    try {
+      final Directory? directory = await getExternalStorageDirectory();
+      if (directory == null) return null;
 
-    // Get encrypted files
-    List<File> encryptedFiles = await _getEncryptedFiles();
+      final String backupPath = "${directory.path}/$_backupFileName";
+      final File backupFile = File(backupPath);
 
-    // Get stored credentials
-    Map<String, String> credentials = await secureStorage.readAll();
+      await backupFile.writeAsString(data);
+      await _storage.write(key: "last_backup", value: backupPath);
 
-    // Create ZIP archive
-    final archive = Archive();
-
-    // Add encrypted files to archive
-    for (File file in encryptedFiles) {
-      final fileBytes = await file.readAsBytes();
-      archive.addFile(ArchiveFile(file.uri.pathSegments.last, fileBytes.length, fileBytes));
+      return backupPath;
+    } catch (e) {
+      print("❌ Error Creating Backup: $e");
+      return null;
     }
-
-    // Add credentials as a JSON file inside ZIP
-    final credentialsData = credentials.entries.map((e) => '${e.key}:${e.value}').join('\n');
-    archive.addFile(ArchiveFile('credentials.txt', credentialsData.length, credentialsData.codeUnits));
-
-    // Save ZIP file
-    final zipFile = File(backupFilePath);
-    await zipFile.writeAsBytes(ZipEncoder().encode(archive)!);
-
-    return backupFilePath;
   }
 
-  /// Restore encrypted files and credentials from a backup ZIP file
-  static Future<void> restoreBackup(String backupPath) async {
-    final backupFile = File(backupPath);
+  /// ✅ Restore Backup Data
+  static Future<String?> restoreBackup() async {
+    try {
+      String? backupPath = await _storage.read(key: "last_backup");
+      if (backupPath == null) return null;
 
-    if (!backupFile.existsSync()) {
-      throw Exception("Backup file not found!");
+      final File backupFile = File(backupPath);
+      if (!backupFile.existsSync()) return null;
+
+      return await backupFile.readAsString();
+    } catch (e) {
+      print("❌ Error Restoring Backup: $e");
+      return null;
     }
+  }
 
-    // Read ZIP contents
-    final bytes = await backupFile.readAsBytes();
-    final archive = ZipDecoder().decodeBytes(bytes);
+  /// ✅ Delete Backup File
+  static Future<bool> deleteBackup() async {
+    try {
+      String? backupPath = await _storage.read(key: "last_backup");
+      if (backupPath == null) return false;
 
-    final directory = await getApplicationDocumentsDirectory();
-
-    for (var file in archive) {
-      if (file.isFile) {
-        final filePath = '${directory.path}/${file.name}';
-        await File(filePath).writeAsBytes(file.content as List<int>);
-
-        if (file.name == 'credentials.txt') {
-          // Restore credentials
-          final credentialLines = String.fromCharCodes(file.content as List<int>).split('\n');
-          for (var line in credentialLines) {
-            final parts = line.split(':');
-            if (parts.length == 2) {
-              await secureStorage.write(key: parts[0], value: parts[1]);
-            }
-          }
-        }
+      final File backupFile = File(backupPath);
+      if (backupFile.existsSync()) {
+        await backupFile.delete();
+        await _storage.delete(key: "last_backup");
+        return true;
       }
+      return false;
+    } catch (e) {
+      print("❌ Error Deleting Backup: $e");
+      return false;
     }
-  }
-
-  /// Get a list of all encrypted files
-  static Future<List<File>> _getEncryptedFiles() async {
-    final directory = await getApplicationDocumentsDirectory();
-    return directory.listSync()
-        .where((entity) => entity is File && entity.path.endsWith('.enc'))
-        .map((entity) => entity as File)
-        .toList();
   }
 }
